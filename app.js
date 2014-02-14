@@ -2,6 +2,7 @@ var url = 'www.notonthehighstreet.com';
 var fs = require('fs');
 var http = require('http');
 var last_order_id;
+var ordersJson = "";
 
 // data: { last_order_id: this.last_order_id },
 function getOrders(callback) {
@@ -39,17 +40,15 @@ function loop() {
         getOrders(function(newOrders) {
             orders = orders.concat(newOrders);
             orders = orders.slice(-20);
-
-            // Write to disk
-            fs.writeFile("/tmp/orders.json", JSON.stringify(orders), function(err) {
-                if(err) {
-                    console.log(err);
-                } else {
-                    console.log("Orders updated.");
-                }
-            });
+            ordersJson = JSON.stringify(orders);
         });
     }, 5000);
 }
 
 loop();
+
+http.createServer(function(request, response) {
+  response.writeHead(200, {"Content-Type": "application/json"});
+  response.write(ordersJson);
+  response.end();
+}).listen(10052);
