@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <script src="http://localhost:10052/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io.connect('http://localhost:10052');
+
+      socket.on('orders', function(orders) {
+        element = document.getElementById("content");
+        element.innerHTML = JSON.stringify(orders);
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="content"></div>
+  </body>
+</html>
