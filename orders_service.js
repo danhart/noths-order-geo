@@ -4,6 +4,7 @@ var http = require('http');
 var EventEmitter = require('events').EventEmitter;
 
 module.exports = new EventEmitter();
+module.exports.intlOrders = [];
 
 var last_order_id;
 
@@ -48,9 +49,15 @@ function loop(callback) {
 }
 
 loop(function(orders) {
-    console.log("-----------------------------------------------------");
-    console.log("new orders: " + orders.length);
-    console.log(orders);
-    console.log("-----------------------------------------------------");
+    var intlOrders = orders.filter(function(order) {
+        return order.geo.country != order.product.geo.country
+    });
+
+    if (intlOrders.length) {
+        module.exports.intlOrders = module.exports.intlOrders.concat(intlOrders);
+        module.exports.intlOrders = module.exports.intlOrders.splice(-10, 10);
+        module.exports.emit('intl_orders', intlOrders);
+    }
+
     module.exports.emit('orders', orders);
 });
