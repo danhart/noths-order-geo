@@ -3,6 +3,8 @@ var fs = require('fs');
 var http = require('http');
 var EventEmitter = require('events').EventEmitter;
 
+var ORDERS_TO_STORE = 500;
+
 module.exports = new EventEmitter();
 module.exports.intlOrders = [];
 
@@ -55,7 +57,7 @@ loop(function(orders) {
 
     if (intlOrders.length) {
         module.exports.intlOrders = module.exports.intlOrders.concat(intlOrders);
-        module.exports.intlOrders = module.exports.intlOrders.splice(-10, 10);
+        module.exports.intlOrders = module.exports.intlOrders.splice(-ORDERS_TO_STORE, ORDERS_TO_STORE);
         module.exports.emit('intl_orders', intlOrders);
     }
 
