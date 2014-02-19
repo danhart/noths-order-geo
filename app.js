@@ -1,5 +1,8 @@
 var ordersService = require('./orders_service.js');
-var io = require('socket.io').listen(10052);
+
+var io = require('socket.io').listen(10052, {
+    resource: '/noths_order_geo/socket.io'
+});
 
 io.sockets.on('connection', function (socket) {
     // Provides the last 10 intl orders immediately
