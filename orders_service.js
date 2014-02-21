@@ -1,19 +1,25 @@
 var url = 'www.notonthehighstreet.com';
-var fs = require('fs');
 var http = require('http');
 var EventEmitter = require('events').EventEmitter;
-
-var ORDERS_TO_STORE = 500;
+var async = require('async');
+var Order = require('./order.js');
+var geoService = require('./geo_service.js');
+var ordersStore = require('./orders_store.js');
 
 module.exports = new EventEmitter();
-module.exports.intlOrders = [];
 
-var last_order_id;
+module.exports.getIntlOrders = function() {
+    return ordersStore.intlOrders;
+};
+
+module.exports.getOrders = function() {
+    return ordersStore.orders;
+};
 
 function getOrders(callback) {
     options = {
         hostname: url,
-        path: "/map?last_order_id=" + last_order_id,
+        path: "/map?last_order_id=" + ordersStore.lastOrderId,
         headers: {
             'Content-Type':     'application/json',
             'Accept':           'application/json, text/javascript',
@@ -31,11 +37,11 @@ function getOrders(callback) {
         res.on('end', function() {
             var data = JSON.parse(body)
 
-            if (data.products.length && last_order_id != data.last_order_id) {
+            if (data.products.length && ordersStore.lastOrderId != data.last_order_id) {
                 callback(data.products);
             }
 
-            last_order_id = data.last_order_id;
+            ordersStore.setLastOrderId(data.last_order_id);
         });
     }).on('error', function(e) {
         console.log("Got error: ", e);
@@ -50,16 +56,48 @@ function loop(callback) {
     }, 5000);
 }
 
-loop(function(orders) {
-    var intlOrders = orders.filter(function(order) {
-        return order.geo.country != order.product.geo.country
+var processOrderData = function(orderData, callback) {
+    var order = new Order(orderData);
+
+    async.mapSeries([order.senderAddress, order.deliveryAddress], geoService.getLocation.bind(geoService), function(err, coordinates) {
+        if (err) {
+            console.log(err);
+            callback(null, null);
+            return;
+        }
+
+        order.product.geo.coordinate = {
+            lat: coordinates[0].lat,
+            lon: coordinates[0].lng
+        };
+
+        order.geo.coordinate = {
+            lat: coordinates[1].lat,
+            lon: coordinates[1].lng
+        };
+
+        callback(null, order);
     });
+};
 
-    if (intlOrders.length) {
-        module.exports.intlOrders = module.exports.intlOrders.concat(intlOrders);
-        module.exports.intlOrders = module.exports.intlOrders.splice(-ORDERS_TO_STORE, ORDERS_TO_STORE);
-        module.exports.emit('intl_orders', intlOrders);
-    }
+loop(function(ordersData) {
+    console.log("--- NEW ORDERS ---");
+    console.log(ordersData.length);
 
-    module.exports.emit('orders', orders);
+    async.mapSeries(ordersData, processOrderData, function(err, orders) {
+        // Compact orders
+        orders = orders.filter(function(n){return n});
+
+        module.exports.emit('orders', orders);
+        ordersStore.addOrders(orders);
+
+        var intlOrders = orders.filter(function(order) {
+            return order.geo.country != order.product.geo.country
+        });
+
+        if (intlOrders.length) {
+            module.exports.emit('intl_orders', intlOrders);
+            ordersStore.addIntlOrders(intlOrders);
+        }
+    });
 });

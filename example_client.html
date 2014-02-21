@@ -1,10 +1,13 @@
 <html>
   <head>
-    <script src="http://localhost:10052/socket.io/socket.io.js"></script>
-    <script>
-      var socket = io.connect('http://localhost:10052');
+    <script src="http://localhost:10052/noths_order_geo/socket.io/socket.io.js"></script>
 
-      socket.on('intl_orders', function(orders) {
+    <script>
+      var socket = io.connect('http://localhost:10052', {
+        resource: 'noths_order_geo/socket.io'
+      });
+
+      socket.on('orders', function(orders) {
         orders_global = orders;
         element = document.getElementById("content");
         element.innerHTML = JSON.stringify(orders);
