@@ -28,16 +28,16 @@ exports.lastOrderId = getLastOrderId();
 exports.addOrders = function(newOrders) {
     exports.orders = exports.orders.concat(newOrders);
     exports.orders = exports.orders.splice(-ORDERS_TO_STORE, ORDERS_TO_STORE);
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(exports.orders));
+    fs.writeFile(ORDERS_FILE, JSON.stringify(exports.orders));
 };
 
 exports.addIntlOrders = function(newIntlOrders) {
     exports.intlOrders = exports.intlOrders.concat(newIntlOrders);
     exports.intlOrders = exports.intlOrders.splice(-ORDERS_TO_STORE, ORDERS_TO_STORE);
-    fs.writeFileSync(INTL_ORDERS_FILE, JSON.stringify(exports.intlOrders));
+    fs.writeFile(INTL_ORDERS_FILE, JSON.stringify(exports.intlOrders));
 };
 
 exports.setLastOrderId = function(lastOrderId) {
     exports.lastOrderId = lastOrderId;
-    fs.writeFileSync(LAST_ORDER_ID_FILE, exports.lastOrderId);
+    fs.writeFile(LAST_ORDER_ID_FILE, exports.lastOrderId);
 };
