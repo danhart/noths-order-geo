@@ -3,7 +3,7 @@ var fs = require('fs');
 var INTL_ORDERS_FILE = "./intl_orders.json";
 var ORDERS_FILE = "./orders.json";
 var LAST_ORDER_ID_FILE = "./last_order_id";
-var ORDERS_TO_STORE = 500;
+var ORDERS_TO_STORE = 100;
 
 var getDataFor = function(filename) {
     if (fs.existsSync(filename)) {
