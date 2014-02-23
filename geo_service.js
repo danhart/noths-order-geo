@@ -38,7 +38,7 @@ exports.getLocation = function(address, callback) {
     }
 
     geocoder.geocode(address, function (err, geoData) {
-        if (err) {
+        if (err || !geoData.results[0]) {
             locationCache[address] = null;
             callback(err);
             return;
