@@ -60,7 +60,7 @@ var processOrderData = function(orderData, callback) {
     var order = new Order(orderData);
 
     async.mapSeries([order.senderAddress, order.deliveryAddress], geoService.getLocation.bind(geoService), function(err, coordinates) {
-        if (err) {
+        if (err || !coordinates[0] || !coordinates[1]) {
             console.log(err);
             callback(null, null);
             return;
