@@ -35,7 +35,12 @@ function getOrders(callback) {
         });
 
         res.on('end', function() {
-            var data = JSON.parse(body)
+            try {
+                var data = JSON.parse(body);
+            } catch(e) {
+                callback([]);
+                return;
+            }
 
             if (data.products.length && ordersStore.lastOrderId != data.last_order_id) {
                 callback(data.products);
