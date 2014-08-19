@@ -48,48 +48,66 @@ function getOrders(url, callback) {
     }, 5000);
 }
 
-var processOrderData = function(orderData, callback) {
-    var order = new Order(orderData);
+var processOrders = function(ordersData, origin, callback) {
+    console.log("--- " + ordersData.length + " NEW ORDER(S) FROM: " + origin);
 
-    async.mapSeries([order.senderAddress, order.deliveryAddress], geoService.getLocation.bind(geoService), function(err, coordinates) {
-        if (err || !coordinates[0] || !coordinates[1]) {
-            console.log(err);
-            callback(null, null);
-            return;
-        }
+    var processOrderData = function(orderData, callback) {
+        var order = new Order(orderData);
+        order.origin = origin;
 
-        order.product.geo.coordinate = {
-            lat: coordinates[0].lat,
-            lon: coordinates[0].lng
-        };
+        async.mapSeries([order.senderAddress, order.deliveryAddress], geoService.getLocation.bind(geoService), function(err, coordinates) {
+            if (err || !coordinates[0] || !coordinates[1]) {
+                console.log(err);
+                callback(null, null);
+                return;
+            }
 
-        order.geo.coordinate = {
-            lat: coordinates[1].lat,
-            lon: coordinates[1].lng
-        };
+            order.product.geo.coordinate = {
+                lat: coordinates[0].lat,
+                lon: coordinates[0].lng
+            };
 
-        callback(null, order);
-    });
-};
+            order.geo.coordinate = {
+                lat: coordinates[1].lat,
+                lon: coordinates[1].lng
+            };
 
-getOrders(ukUrl, function(ordersData) {
-    console.log("--- NEW ORDERS ---");
-    console.log(ordersData.length);
+            callback(null, order);
+        });
+    };
 
+    // All this async stuff could go away if the geoService provided some sort
+    // of queueing for requests. Otherwise we get 500s back from google.
     async.mapSeries(ordersData, processOrderData, function(err, orders) {
         // Compact orders
         orders = orders.filter(function(n){
             return n;
         });
 
-        module.exports.emit('orders', orders);
+        callback(orders);
+    });
+};
 
-        var intlOrders = orders.filter(function(order) {
-            return order.geo.country != order.product.geo.country;
-        });
+var emitOrders = function(orders) {
+    module.exports.emit('orders', orders);
 
-        if (intlOrders.length) {
-            module.exports.emit('intl_orders', intlOrders);
-        }
+    var intlOrders = orders.filter(function(order) {
+        return order.geo.country != order.product.geo.country;
+    });
+
+    if (intlOrders.length) {
+        module.exports.emit('intl_orders', intlOrders);
+    }
+};
+
+getOrders(ukUrl, function(ordersData) {
+    processOrders(ordersData, ukUrl, function(orders) {
+        emitOrders(orders);
+    });
+});
+
+getOrders(deUrl, function(ordersData) {
+    processOrders(ordersData, deUrl, function(orders) {
+        emitOrders(orders);
     });
 });

@@ -1,8 +1,7 @@
-var async = require('async');
-
 var Order = function(orderData) {
     this.geo = orderData.geo;
     this.product = orderData.product;
+    this.total = orderData.total;
     this.deliveryAddress = this.getDeliveryAddress();
     this.senderAddress = this.getSenderAddress();
     this.date = new Date();
