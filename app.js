@@ -5,10 +5,6 @@ var io = require('socket.io').listen(10052, {
 });
 
 io.sockets.on('connection', function (socket) {
-    // Provides the last 10 intl orders immediately
-    socket.emit('intl_orders', ordersService.getIntlOrders());
-    socket.emit('orders', ordersService.getOrders());
-
     var orderListener = function(orders) {
         socket.emit('orders', orders);
     };

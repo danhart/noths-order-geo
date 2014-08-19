@@ -1,63 +1,50 @@
-var url = 'www.notonthehighstreet.com';
-var http = require('http');
+var ukUrl = 'http://www.notonthehighstreet.com';
+var deUrl = 'http://preview.notonthehighstreet.de';
+
 var EventEmitter = require('events').EventEmitter;
 var async = require('async');
 var Order = require('./order.js');
 var geoService = require('./geo_service.js');
-var ordersStore = require('./orders_store.js');
+var request = require('request');
 
 module.exports = new EventEmitter();
 
-module.exports.getIntlOrders = function() {
-    return ordersStore.intlOrders;
-};
+function getOrders(url, callback) {
+    var lastOrderId;
 
-module.exports.getOrders = function() {
-    return ordersStore.orders;
-};
+    var orderRequest = function(callback) {
+        var options = {
+            url: url + "/map?last_order_id=" + lastOrderId,
+            headers: {
+                'Content-Type':     'application/json',
+                'Accept':           'application/json, text/javascript',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        };
 
-function getOrders(callback) {
-    options = {
-        hostname: url,
-        path: "/map?last_order_id=" + ordersStore.lastOrderId,
-        headers: {
-            'Content-Type':     'application/json',
-            'Accept':           'application/json, text/javascript',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    };
+        request(options, function (error, response, body) {
+            var data;
 
-    http.get(options, function(res) {
-        var body = '';
+            if (error || response.statusCode !== 200) return;
 
-        res.on('data', function(chunk) {
-            body += chunk;
-        });
-
-        res.on('end', function() {
             try {
-                var data = JSON.parse(body);
+                data = JSON.parse(body);
             } catch(e) {
-                callback([]);
-                return;
+                return callback([]);
             }
 
-            if (data.products.length && ordersStore.lastOrderId != data.last_order_id) {
+            if (data.products.length && lastOrderId != data.last_order_id) {
                 callback(data.products);
             }
 
-            ordersStore.setLastOrderId(data.last_order_id);
+            lastOrderId = data.last_order_id;
         });
-    }).on('error', function(e) {
-        console.log("Got error: ", e);
-    });
-}
+    };
 
-function loop(callback) {
-    getOrders(callback);
+    orderRequest(callback);
 
     setInterval(function() {
-        getOrders(callback);
+        orderRequest(callback);
     }, 5000);
 }
 
@@ -85,24 +72,24 @@ var processOrderData = function(orderData, callback) {
     });
 };
 
-loop(function(ordersData) {
+getOrders(ukUrl, function(ordersData) {
     console.log("--- NEW ORDERS ---");
     console.log(ordersData.length);
 
     async.mapSeries(ordersData, processOrderData, function(err, orders) {
         // Compact orders
-        orders = orders.filter(function(n){return n});
+        orders = orders.filter(function(n){
+            return n;
+        });
 
         module.exports.emit('orders', orders);
-        ordersStore.addOrders(orders);
 
         var intlOrders = orders.filter(function(order) {
-            return order.geo.country != order.product.geo.country
+            return order.geo.country != order.product.geo.country;
         });
 
         if (intlOrders.length) {
             module.exports.emit('intl_orders', intlOrders);
-            ordersStore.addIntlOrders(intlOrders);
         }
     });
 });
