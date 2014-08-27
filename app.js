@@ -1,4 +1,7 @@
 var ordersService = require('./orders_service.js');
+var OrderCollection = require('./order-collection.js');
+
+var orderCollection = new OrderCollection();
 
 var io = require('socket.io').listen(10052, {
     resource: '/noths_order_geo/socket.io'
@@ -11,6 +14,12 @@ io.sockets.on('connection', function (socket) {
 
     var orderListener = function(order) {
         socket.emit('order', order);
+        orderCollection.add(order);
+
+        socket.emit('stats', {
+            todaysTtv: orderCollection.today().ttv(),
+            todaysTotalOrders: orderCollection.today().count()
+        });
     };
 
     var intlOrdersListener = function(intl_orders) {
