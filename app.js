@@ -16,9 +16,14 @@ io.sockets.on('connection', function (socket) {
         socket.emit('order', order);
         orderCollection.add(order);
 
+        var todaysUkOrders = orderCollection.today().byOrigin("http://www.notonthehighstreet.com");
+        var todaysDeOrders = orderCollection.today().byOrigin("http://preview.notonthehighstreet.de");
+
         socket.emit('stats', {
-            todaysTtv: orderCollection.today().ttv(),
-            todaysTotalOrders: orderCollection.today().count()
+            todaysUkTtv: todaysUkOrders.ttv(),
+            todaysDeTtv: todaysDeOrders.ttv(),
+            todaysUkOrderCount: todaysUkOrders.count(),
+            todaysDeOrderCount: todaysDeOrders.count()
         });
     };
 

@@ -42,6 +42,12 @@ OrderCollection.prototype.byDate = function(date) {
     return new OrderCollection(this.ordersByDate[dateStamp]);
 };
 
+OrderCollection.prototype.byOrigin = function(origin) {
+    return new OrderCollection(this.orders.filter(function(order) {
+        return order.origin === origin;
+    }));
+};
+
 var generateDateStamp = function(date) {
     return date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
 };
