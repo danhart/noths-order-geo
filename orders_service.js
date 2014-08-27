@@ -33,7 +33,7 @@ function getOrders(url, callback) {
                 return callback([]);
             }
 
-            if (data.products.length && lastOrderId != data.last_order_id) {
+            if (data.products.length && lastOrderId && lastOrderId != data.last_order_id) {
                 callback(data.products);
             }
 
