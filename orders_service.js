@@ -88,8 +88,13 @@ var processOrders = function(ordersData, origin, callback) {
     });
 };
 
+// TODO: This should all be moved onto the OrderCollection
 var emitOrders = function(orders) {
     module.exports.emit('orders', orders);
+
+    orders.forEach(function(order) {
+        module.exports.emit('order', order);
+    });
 
     var intlOrders = orders.filter(function(order) {
         return order.geo.country != order.product.geo.country;
@@ -97,6 +102,10 @@ var emitOrders = function(orders) {
 
     if (intlOrders.length) {
         module.exports.emit('intl_orders', intlOrders);
+
+        intlOrders.forEach(function(order) {
+            module.exports.emit('intl_order', order);
+        });
     }
 };
 
