@@ -12,6 +12,14 @@
         element = document.getElementById("content");
         element.innerHTML = JSON.stringify(orders);
       });
+
+      socket.on('order', function(order) {
+        console.log(order);
+      });
+
+      socket.on('stats', function(stats) {
+        console.log(stats);
+      });
     </script>
   </head>
 
