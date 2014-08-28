@@ -8,14 +8,7 @@ var io = require('socket.io').listen(10052, {
 });
 
 io.sockets.on('connection', function (socket) {
-    var ordersListener = function(orders) {
-        socket.emit('orders', orders);
-    };
-
-    var orderListener = function(order) {
-        socket.emit('order', order);
-        orderCollection.add(order);
-
+    var emitStats = function() {
         var todaysUkOrders = orderCollection.today().byOrigin("http://www.notonthehighstreet.com");
         var todaysDeOrders = orderCollection.today().byOrigin("http://preview.notonthehighstreet.de");
 
@@ -25,6 +18,16 @@ io.sockets.on('connection', function (socket) {
             todaysUkOrderCount: todaysUkOrders.count(),
             todaysDeOrderCount: todaysDeOrders.count()
         });
+    };
+
+    var ordersListener = function(orders) {
+        socket.emit('orders', orders);
+    };
+
+    var orderListener = function(order) {
+        socket.emit('order', order);
+        orderCollection.add(order);
+        emitStats();
     };
 
     var intlOrdersListener = function(intl_orders) {
@@ -39,6 +42,16 @@ io.sockets.on('connection', function (socket) {
     ordersService.on('order', orderListener);
     ordersService.on('intl_orders', intlOrdersListener);
     ordersService.on('intl_order', intlOrderListener);
+
+    socket.on('stats', function() {
+        emitStats();
+    });
+
+    socket.on('orders', function(amount) {
+        orderCollection.last(amount).forEach(function(order) {
+            socket.emit('order', order);
+        });
+    });
 
     socket.on('disconnect', function () {
         ordersService.removeListener('orders', ordersListener);

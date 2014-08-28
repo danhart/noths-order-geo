@@ -48,6 +48,11 @@ OrderCollection.prototype.byOrigin = function(origin) {
     }));
 };
 
+OrderCollection.prototype.last = function(amount) {
+    var amount = amount || 1;
+    return this.orders.slice(-amount);
+};
+
 var generateDateStamp = function(date) {
     return date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
 };
