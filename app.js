@@ -3,6 +3,8 @@ var OrderCollection = require('./order-collection.js');
 
 var orderCollection = new OrderCollection();
 
+ordersService.setMaxListeners(0);
+
 ordersService.on('order', function(order) {
     orderCollection.add(order);
 });
