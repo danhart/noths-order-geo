@@ -58,10 +58,8 @@ io.sockets.on('connection', function (socket) {
         });
     });
 
-    socket.on('orders-de', function(amount) {
-        var deOrders = orderCollection.byOrigin("http://preview.notonthehighstreet.de");
-
-        deOrders.last(amount).forEach(function(order) {
+    socket.on('order-query', function(query) {
+        orderCollection.query(query).forEach(function(order) {
             socket.emit('order', order);
         });
     });

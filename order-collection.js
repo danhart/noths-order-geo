@@ -50,7 +50,21 @@ OrderCollection.prototype.byOrigin = function(origin) {
 
 OrderCollection.prototype.last = function(amount) {
     var amount = amount || 1;
-    return this.orders.slice(-amount);
+    return new OrderCollection(this.orders.slice(-amount));
+};
+
+OrderCollection.prototype.query = function(query) {
+    var collection = this;
+
+    if (query.date) collection = collection.byDate(query.date);
+    if (query.origin) collection = collection.byOrigin(query.origin);
+    if (query.last) collection = collection.last(query.last);
+
+    return collection;
+};
+
+OrderCollection.prototype.forEach = function(callback) {
+    this.orders.forEach(callback);
 };
 
 var generateDateStamp = function(date) {
