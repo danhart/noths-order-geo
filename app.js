@@ -1,12 +1,11 @@
-var ordersService = require('./orders_service.js');
+var nothsOrderFetcher = require('./lib/noths-order-fetcher.js');
 var OrderCollection = require('./order-collection.js');
+var Order = require('./order.js');
 
 var orderCollection = new OrderCollection();
 
-ordersService.setMaxListeners(0);
-
-ordersService.on('order', function(order) {
-    orderCollection.add(order);
+nothsOrderFetcher.on('order', function(orderData) {
+    orderCollection.add(new Order(orderData));
 });
 
 var io = require('socket.io').listen(10052, {
@@ -14,42 +13,20 @@ var io = require('socket.io').listen(10052, {
 });
 
 io.sockets.on('connection', function (socket) {
-    var emitStats = function() {
-        var todaysUkOrders = orderCollection.today().byOrigin("http://www.notonthehighstreet.com");
-        var todaysDeOrders = orderCollection.today().byOrigin("http://preview.notonthehighstreet.de");
-
-        socket.emit('stats', {
-            todaysUkTtv: todaysUkOrders.ttv(),
-            todaysDeTtv: todaysDeOrders.ttv(),
-            todaysUkOrderCount: todaysUkOrders.count(),
-            todaysDeOrderCount: todaysDeOrders.count()
-        });
-    };
-
-    var ordersListener = function(orders) {
-        socket.emit('orders', orders);
-    };
-
     var orderListener = function(order) {
         socket.emit('order', order);
-        emitStats();
-    };
-
-    var intlOrdersListener = function(intl_orders) {
-        socket.emit('intl_orders', intl_orders);
+        socket.emit('stats', orderCollection.stats());
     };
 
     var intlOrderListener = function(intl_order) {
         socket.emit('intl_order', intl_order);
     };
 
-    ordersService.on('orders', ordersListener);
-    ordersService.on('order', orderListener);
-    ordersService.on('intl_orders', intlOrdersListener);
-    ordersService.on('intl_order', intlOrderListener);
+    orderCollection.on('order', orderListener);
+    orderCollection.on('intl-order', intlOrderListener);
 
     socket.on('stats', function() {
-        emitStats();
+        socket.emit('stats', orderCollection.stats());
     });
 
     socket.on('orders', function(amount) {
@@ -65,9 +42,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('disconnect', function () {
-        ordersService.removeListener('orders', ordersListener);
-        ordersService.removeListener('order', orderListener);
-        ordersService.removeListener('intl_orders', intlOrdersListener);
-        ordersService.removeListener('intl_order', intlOrderListener);
+        orderCollection.removeListener('order', orderListener);
+        orderCollection.removeListener('intl-order', intlOrderListener);
     });
 });

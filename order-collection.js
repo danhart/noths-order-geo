@@ -1,11 +1,26 @@
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+
 var OrderCollection = function(orders) {
+    EventEmitter.call(this);
+    this.setMaxListeners(0);
     this.orders = orders || [];
     this.ordersByDate = {};
 };
 
+util.inherits(OrderCollection, EventEmitter);
+
 OrderCollection.prototype.add = function(order) {
     this.orders.push(order);
     this.addToDate(order);
+
+    this.emit('order', order);
+
+    if (order.isDomestic()) {
+        this.emit('domestic-order', order);
+    } else {
+        this.emit('intl-order', order);
+    }
 };
 
 OrderCollection.prototype.addToDate = function(order) {
@@ -65,6 +80,18 @@ OrderCollection.prototype.query = function(query) {
 
 OrderCollection.prototype.forEach = function(callback) {
     this.orders.forEach(callback);
+};
+
+OrderCollection.prototype.stats = function() {
+    var todaysUkOrders = this.today().byOrigin("http://www.notonthehighstreet.com");
+    var todaysDeOrders = this.today().byOrigin("http://preview.notonthehighstreet.de");
+
+    return {
+        todaysUkTtv: todaysUkOrders.ttv(),
+        todaysDeTtv: todaysDeOrders.ttv(),
+        todaysUkOrderCount: todaysUkOrders.count(),
+        todaysDeOrderCount: todaysDeOrders.count()
+    };
 };
 
 var generateDateStamp = function(date) {

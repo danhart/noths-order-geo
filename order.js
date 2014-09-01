@@ -1,36 +1,19 @@
-var Order = function(orderData) {
-    this.geo = orderData.geo;
-    this.product = orderData.product;
-    this.total = orderData.total;
-    this.deliveryAddress = this.getDeliveryAddress();
-    this.senderAddress = this.getSenderAddress();
-    this.date = new Date();
+var Order = function(data) {
+    this.geo = data.geo;
+    this.product = data.product;
+    this.total = data.total;
+    this.deliveryAddress = data.deliveryAddress;
+    this.senderAddress = data.senderAddress;
+    this.date = data.date;
+    this.origin = data.origin;
 };
 
-Order.prototype.getDeliveryAddress = function() {
-    var deliveryAddress = this.geo.place +
-        ', ' +
-        this.geo.county +
-        ', ' +
-        this.geo.country;
-
-    deliveryAddress = deliveryAddress.replace(/ ,/, '');
-    deliveryAddress = deliveryAddress.replace(/,,/, ',');
-
-    return deliveryAddress;
+Order.prototype.isDomestic = function() {
+    return this.geo.country === this.product.geo.country;
 };
 
-Order.prototype.getSenderAddress = function() {
-    var senderAddress = this.product.geo.place +
-        ', ' +
-        this.product.geo.county +
-        ', ' +
-        this.product.geo.country;
-
-    senderAddress = senderAddress.replace(/ ,/, '');
-    senderAddress = senderAddress.replace(/,,/, ',');
-
-    return senderAddress;
+Order.prototype.isInternational = function() {
+    return !this.isDomestic();
 };
 
 module.exports = Order;
