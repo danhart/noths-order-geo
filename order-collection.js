@@ -63,6 +63,12 @@ OrderCollection.prototype.byOrigin = function(origin) {
     }));
 };
 
+OrderCollection.prototype.international = function() {
+    return new OrderCollection(this.orders.filter(function(order) {
+        return order.isInternational()
+    }));
+};
+
 OrderCollection.prototype.last = function(amount) {
     var amount = amount || 1;
     return new OrderCollection(this.orders.slice(-amount));
@@ -73,6 +79,7 @@ OrderCollection.prototype.query = function(query) {
 
     if (query.date) collection = collection.byDate(query.date);
     if (query.origin) collection = collection.byOrigin(query.origin);
+    if (query.international) collection = collection.international();
     if (query.last) collection = collection.last(query.last);
 
     return collection;
