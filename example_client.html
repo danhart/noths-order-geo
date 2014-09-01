@@ -3,14 +3,13 @@
     <script src="http://localhost:10052/noths_order_geo/socket.io/socket.io.js"></script>
 
     <script>
-      var socket = io.connect('http://localhost:10052', {
+      socket = io.connect('http://localhost:10052', {
         resource: 'noths_order_geo/socket.io'
       });
 
-      socket.on('orders', function(orders) {
-        orders_global = orders;
+      socket.on('order', function(order) {
         element = document.getElementById("content");
-        element.innerHTML = JSON.stringify(orders);
+        element.innerHTML = JSON.stringify(order);
       });
 
       socket.on('order', function(order) {
