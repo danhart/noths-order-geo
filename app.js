@@ -9,10 +9,13 @@ nothsOrderFetcher.on('order', function(orderData) {
 });
 
 var io = require('socket.io').listen(10052, {
-    resource: '/noths_order_geo/socket.io'
+    resource: '/noths_order_geo/socket.io',
+    log: false
 });
 
 io.sockets.on('connection', function (socket) {
+    console.log("Client connected");
+
     var orderListener = function(order) {
         socket.emit('order', order);
         socket.emit('stats', orderCollection.stats());
