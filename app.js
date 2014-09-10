@@ -1,11 +1,22 @@
-var nothsOrderFetcher = require('./lib/noths-order-fetcher.js');
-var OrderCollection = require('./order-collection.js');
-var Order = require('./order.js');
+var nothsOrderFetcher = require('./lib/noths-order-fetcher');
+var OrderCollection = require('./order-collection');
+var nothsGeoLookup = require('./lib/noths-geo-lookup');
+var Order = require('./order');
 
 var orderCollection = new OrderCollection();
 
 nothsOrderFetcher.on('order', function(orderData) {
-    orderCollection.add(new Order(orderData));
+    var order = new Order(orderData);
+
+    if (order.isInternational()) {
+        // Would like to do this for all orders but Google limit to 2,500
+        // requests per day per IP. So just international orders for now.
+        nothsGeoLookup.lookup(order, function(err, orderWithGeo) {
+            orderCollection.add(orderWithGeo);
+        });
+    } else {
+        orderCollection.add(order);
+    }
 });
 
 var io = require('socket.io').listen(10052, {
