@@ -9,9 +9,12 @@ nothsOrderFetcher.on('order', function(orderData) {
     var order = new Order(orderData);
 
     if (order.isInternational()) {
+        console.log("International order");
         // Would like to do this for all orders but Google limit to 2,500
         // requests per day per IP. So just international orders for now.
         nothsGeoLookup.lookup(order, function(err, orderWithGeo) {
+            console.log(order.product.geo.coordinate);
+            console.log(order.geo.coordinate);
             if (err) console.log(err);
             orderCollection.add(orderWithGeo);
         });
