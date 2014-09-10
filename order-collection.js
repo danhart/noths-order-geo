@@ -15,12 +15,6 @@ OrderCollection.prototype.add = function(order) {
     this.addToDate(order);
 
     this.emit('order', order);
-
-    if (order.isDomestic()) {
-        this.emit('domestic-order', order);
-    } else {
-        this.emit('intl-order', order);
-    }
 };
 
 OrderCollection.prototype.addToDate = function(order) {
@@ -65,7 +59,7 @@ OrderCollection.prototype.byOrigin = function(origin) {
 
 OrderCollection.prototype.international = function() {
     return new OrderCollection(this.orders.filter(function(order) {
-        return order.isInternational()
+        return order.isInternational();
     }));
 };
 

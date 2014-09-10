@@ -32,12 +32,7 @@ io.sockets.on('connection', function (socket) {
         socket.emit('stats', orderCollection.stats());
     };
 
-    var intlOrderListener = function(intl_order) {
-        socket.emit('intl-order', intl_order);
-    };
-
     orderCollection.on('order', orderListener);
-    orderCollection.on('intl-order', intlOrderListener);
 
     socket.on('stats', function() {
         socket.emit('stats', orderCollection.stats());
@@ -52,17 +47,10 @@ io.sockets.on('connection', function (socket) {
     socket.on('order-query', function(query) {
         orderCollection.query(query).forEach(function(order) {
             socket.emit('order', order);
-
-            if (order.isDomestic()) {
-                socket.emit('domestic-order', order);
-            } else {
-                socket.emit('intl-order', order);
-            }
         });
     });
 
     socket.on('disconnect', function () {
         orderCollection.removeListener('order', orderListener);
-        orderCollection.removeListener('intl-order', intlOrderListener);
     });
 });
