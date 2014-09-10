@@ -52,6 +52,12 @@ io.sockets.on('connection', function (socket) {
     socket.on('order-query', function(query) {
         orderCollection.query(query).forEach(function(order) {
             socket.emit('order', order);
+
+            if (order.isDomestic()) {
+                socket.emit('domestic-order', order);
+            } else {
+                socket.emit('intl-order', order);
+            }
         });
     });
 
