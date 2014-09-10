@@ -33,7 +33,7 @@ io.sockets.on('connection', function (socket) {
     };
 
     var intlOrderListener = function(intl_order) {
-        socket.emit('intl_order', intl_order);
+        socket.emit('intl-order', intl_order);
     };
 
     orderCollection.on('order', orderListener);
