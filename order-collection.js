@@ -11,6 +11,15 @@ var OrderCollection = function(orders) {
 util.inherits(OrderCollection, EventEmitter);
 
 OrderCollection.prototype.add = function(order) {
+    // TODO: This is a horrible kludge but for some reason the same order is
+    // occasionally added multiple times to the collection.
+    if (order.added) {
+        console.log("--- BUG: ORDER ALREADY ADDED ---");
+        return;
+    }
+
+    order.added = true;
+
     this.orders.push(order);
     this.addToDate(order);
 

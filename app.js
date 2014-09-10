@@ -12,6 +12,7 @@ nothsOrderFetcher.on('order', function(orderData) {
         // Would like to do this for all orders but Google limit to 2,500
         // requests per day per IP. So just international orders for now.
         nothsGeoLookup.lookup(order, function(err, orderWithGeo) {
+            if (err) console.log(err);
             orderCollection.add(orderWithGeo);
         });
     } else {
