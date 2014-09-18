@@ -5,7 +5,11 @@ var nothsGeoLookup = require('./lib/noths-geo-lookup');
 var Order = require('./order');
 var NothsOrderStore = require('./lib/noths-order-store');
 
-var nothsOrderStore = new NothsOrderStore(redis.createClient());
+var redisClient = redis.createClient(process.env.REDIS_PORT, '127.0.0.1', {
+    auth_pass: process.env.REDIS_PASS
+});
+
+var nothsOrderStore = new NothsOrderStore(redisClient);
 
 nothsOrderFetcher.on('order', function(orderData) {
     var order = new Order(orderData);
