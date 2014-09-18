@@ -45,9 +45,13 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('order-query', function(query) {
-        orderCollection.query(query).forEach(function(order) {
-            socket.emit('order', order);
-        });
+        try {
+            orderCollection.query(query).forEach(function(order) {
+                socket.emit('order', order);
+            });
+        } catch (e) {
+            socket.emit('order-query-error', util.inspect(e));
+        }
     });
 
     socket.on('disconnect', function () {
