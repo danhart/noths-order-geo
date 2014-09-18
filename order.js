@@ -16,4 +16,12 @@ Order.prototype.isInternational = function() {
     return !this.isDomestic();
 };
 
+Order.prototype.isOriginUK = function() {
+    return this.origin.match(/\.com$/);
+};
+
+Order.prototype.isOriginDE = function() {
+    return this.origin.match(/\.de$/);
+};
+
 module.exports = Order;

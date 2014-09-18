@@ -1,10 +1,11 @@
 var util = require('util');
+var redis = require('redis');
 var nothsOrderFetcher = require('./lib/noths-order-fetcher');
-var OrderCollection = require('./order-collection');
 var nothsGeoLookup = require('./lib/noths-geo-lookup');
 var Order = require('./order');
+var NothsOrderStore = require('./lib/noths-order-store');
 
-var orderCollection = new OrderCollection();
+var nothsOrderStore = new NothsOrderStore(redis.createClient());
 
 nothsOrderFetcher.on('order', function(orderData) {
     var order = new Order(orderData);
@@ -18,10 +19,10 @@ nothsOrderFetcher.on('order', function(orderData) {
             util.log(util.inspect(order.geo.coordinate, { colors: true }));
 
             if (err) util.log(err);
-            orderCollection.add(orderWithGeo);
+            nothsOrderStore.push(orderWithGeo);
         });
     } else {
-        orderCollection.add(order);
+        nothsOrderStore.push(order);
     }
 });
 
@@ -35,26 +36,34 @@ io.sockets.on('connection', function (socket) {
 
     var orderListener = function(order) {
         socket.emit('order', order);
-        socket.emit('stats', orderCollection.stats());
+
+        nothsOrderStore.stats(function(stats) {
+            socket.emit('stats', stats);
+        });
     };
 
-    orderCollection.on('order', orderListener);
+    nothsOrderStore.on('order', orderListener);
 
     socket.on('stats', function() {
-        socket.emit('stats', orderCollection.stats());
+        nothsOrderStore.stats(function(stats) {
+            socket.emit('stats', stats);
+        });
     });
 
     socket.on('order-query', function(query) {
         try {
-            orderCollection.query(query).forEach(function(order) {
-                socket.emit('order', order);
+            nothsOrderStore.query(query, function(orders) {
+                orders.forEach(function(order) {
+                    socket.emit('order', order);
+                });
             });
         } catch (e) {
             socket.emit('order-query-error', util.inspect(e));
+            util.error(e);
         }
     });
 
     socket.on('disconnect', function () {
-        orderCollection.removeListener('order', orderListener);
+        nothsOrderStore.removeListener('order', orderListener);
     });
 });

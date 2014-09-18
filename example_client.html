@@ -8,11 +8,6 @@
       });
 
       socket.on('order', function(order) {
-        element = document.getElementById("content");
-        element.innerHTML = JSON.stringify(order);
-      });
-
-      socket.on('order', function(order) {
         console.log(order);
       });
 
