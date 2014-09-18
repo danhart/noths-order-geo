@@ -44,12 +44,6 @@ io.sockets.on('connection', function (socket) {
         socket.emit('stats', orderCollection.stats());
     });
 
-    socket.on('orders', function(amount) {
-        orderCollection.last(amount).forEach(function(order) {
-            socket.emit('order', order);
-        });
-    });
-
     socket.on('order-query', function(query) {
         orderCollection.query(query).forEach(function(order) {
             socket.emit('order', order);
