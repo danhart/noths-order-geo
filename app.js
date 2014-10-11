@@ -41,7 +41,8 @@ io.sockets.on('connection', function (socket) {
     var orderListener = function(order) {
         socket.emit('order', order);
 
-        nothsOrderStore.stats(function(stats) {
+        nothsOrderStore.stats(function(err, stats) {
+            if (err) return;
             socket.emit('stats', stats);
         });
     };
@@ -49,14 +50,17 @@ io.sockets.on('connection', function (socket) {
     nothsOrderStore.on('order', orderListener);
 
     socket.on('stats', function() {
-        nothsOrderStore.stats(function(stats) {
+        nothsOrderStore.stats(function(err, stats) {
+            if (err) return;
             socket.emit('stats', stats);
         });
     });
 
     socket.on('order-query', function(query) {
         try {
-            nothsOrderStore.query(query, function(orders) {
+            nothsOrderStore.query(query, function(err, orders) {
+                if (err) return;
+
                 orders.forEach(function(order) {
                     socket.emit('order', order);
                 });
