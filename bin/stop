@@ -1,0 +1,12 @@
+mkdir -p /home/azriel/webapps/noths_order_geo/run
+pid=$(/sbin/pidof /home/azriel/webapps/noths_order_geo/bin/node)
+if echo "$pid" | grep -q " "; then
+    pid=""
+fi
+if [ -n "$pid" ]; then
+  user=$(ps -p $pid -o user | tail -n 1)
+  if [ $user = "azriel" ]; then
+    kill "$pid"
+    rm -f /home/azriel/webapps/noths_order_geo/run/node.pid
+  fi
+fi
